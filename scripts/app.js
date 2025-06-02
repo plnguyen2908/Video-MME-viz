@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ----------------------------------- */
   const subCatSelect = document.getElementById("filter-subcategory");
   const taskTypeSelect = document.getElementById("filter-tasktype");
+  const domainSelect = document.getElementById("filter-domain");
   const videoContainer = document.getElementById("video-container");
   const paginationContainer = document.getElementById("pagination");
 
@@ -15,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let dataset = [];         // Mảng chứa toàn bộ bản ghi JSON
   let uniqueSubCats = new Set();
   let uniqueTaskTypes = new Set();
+  let uniqueDomains = new Set();  // Tập domain duy nhất
 
   /* -----------------------------------
      2. Hàm lấy YouTube Embed URL
@@ -48,13 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
      3. Hàm splitOptions (hỗ trợ mảng & string)
   ----------------------------------- */
   function splitOptions(optionsField) {
-    // 3.1. Nếu đã là mảng, trim và trả luôn
+    // Nếu record.options là array
     if (Array.isArray(optionsField)) {
       return optionsField
         .map(opt => (typeof opt === "string" ? opt.trim() : ""))
         .filter(opt => opt !== "");
     }
-    // 3.2. Nếu là string, dùng regex tách
+    // Nếu record.options là string, tách bằng regex
     if (typeof optionsField === "string") {
       const regex = /([A-Z]\.\s*[^A-Z]*)/g;
       const matches = optionsField.match(regex);
@@ -67,12 +69,12 @@ document.addEventListener("DOMContentLoaded", () => {
         .map(opt => opt.trim())
         .filter(opt => opt !== "");
     }
-    // 3.3. Khác (null hoặc object), trả mảng rỗng
+    // Nếu không phải array hoặc string, trả về mảng rỗng
     return [];
   }
 
   /* -----------------------------------
-     4. Hàm tạo phần tử media (iframe/video)
+     4. Hàm tạo phần tử media (iframe hoặc <video>)
   ----------------------------------- */
   function createMediaElement(record) {
     const url = record.url;
@@ -99,14 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* -----------------------------------
-     5. Hàm tạo một Video Card 
-     (gồm media + metadata)
+     5. Hàm tạo một Video Card (media + metadata)
   ----------------------------------- */
   function createVideoCard(record) {
     const card = document.createElement("div");
     card.classList.add("video-card");
 
-    // 5.1. Phần media
+    // 5.1. Phần media: iframe hoặc video
     const mediaEl = createMediaElement(record);
     card.appendChild(mediaEl);
 
@@ -125,6 +126,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (record.task_type) {
       const p = document.createElement("p");
       p.innerHTML = `<span class="meta-label">Task Type:</span> ${record.task_type}`;
+      metaDiv.appendChild(p);
+    }
+
+    // Domain
+    if (record.domain) {
+      const p = document.createElement("p");
+      p.innerHTML = `<span class="meta-label">Domain:</span> ${record.domain}`;
       metaDiv.appendChild(p);
     }
 
@@ -170,9 +178,12 @@ document.addEventListener("DOMContentLoaded", () => {
      6. Hàm khởi tạo dropdown filter
   ----------------------------------- */
   function initFilters() {
+    // 6.1. Reset tất cả dropdown về “All”
     subCatSelect.innerHTML = '<option value="">-- All --</option>';
     taskTypeSelect.innerHTML = '<option value="">-- All --</option>';
+    domainSelect.innerHTML = '<option value="">-- All --</option>';
 
+    // 6.2. Đổ giá trị Sub-category
     Array.from(uniqueSubCats).sort().forEach(subcat => {
       const opt = document.createElement("option");
       opt.value = subcat;
@@ -180,34 +191,47 @@ document.addEventListener("DOMContentLoaded", () => {
       subCatSelect.appendChild(opt);
     });
 
+    // 6.3. Đổ giá trị Task Type
     Array.from(uniqueTaskTypes).sort().forEach(tt => {
       const opt = document.createElement("option");
       opt.value = tt;
       opt.textContent = tt;
       taskTypeSelect.appendChild(opt);
     });
+
+    // 6.4. Đổ giá trị Domain
+    Array.from(uniqueDomains).sort().forEach(dm => {
+      const opt = document.createElement("option");
+      opt.value = dm;
+      opt.textContent = dm;
+      domainSelect.appendChild(opt);
+    });
   }
 
   /* -----------------------------------
-     7. Hàm renderCards() với pagination
+     7. Hàm renderCards() với joint filtering
   ----------------------------------- */
   function renderCards() {
     videoContainer.innerHTML = "";
 
-    // 7.1. Lọc dataset
+    // 7.1. Lọc dataset theo 3 dropdown: sub_category, task_type, domain
     const selSub = subCatSelect.value;
     const selTask = taskTypeSelect.value;
+    const selDomain = domainSelect.value;
+
     const filtered = dataset.filter(rec => {
       const okSub = selSub === "" || rec.sub_category === selSub;
       const okTask = selTask === "" || rec.task_type === selTask;
-      return okSub && okTask;
+      const okDomain = selDomain === "" || rec.domain === selDomain;
+      // Phải thỏa cả ba để đưa vào filtered
+      return okSub && okTask && okDomain;
     });
 
     // 7.2. Tính tổng items & totalPages
     const totalItems = filtered.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    // 7.3. Điều chỉnh currentPage nếu vượt
+    // 7.3. Điều chỉnh currentPage nếu vượt giới hạn
     if (currentPage > totalPages && totalPages > 0) {
       currentPage = totalPages;
     }
@@ -220,17 +244,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const endIndex = startIndex + itemsPerPage;
     const pageItems = filtered.slice(startIndex, endIndex);
 
-    // 7.5. Nếu không có item, hiển thị thông báo
+    // 7.5. Nếu không có phần tử, hiển thị thông báo
     if (pageItems.length === 0) {
-      videoContainer.innerHTML = "<p>Không tìm thấy video phù hợp.</p>";
+      videoContainer.innerHTML = "<p>Cannot find videos by that filter</p>";
     } else {
+      // Tạo & chèn từng video-card
       pageItems.forEach(rec => {
         const card = createVideoCard(rec);
         videoContainer.appendChild(card);
       });
     }
 
-    // 7.6. Render pagination (ellipsis)
+    // 7.6. Render pagination (ellipsis) dựa trên totalItems & totalPages
     renderPagination(totalItems, totalPages);
   }
 
@@ -239,9 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
   ----------------------------------- */
   function renderPagination(totalItems, totalPages) {
     paginationContainer.innerHTML = "";
+
+    // Nếu chỉ một trang hoặc không có record → không hiển thị pagination
     if (totalPages <= 1) return;
 
-    // 8.1. Nút "‹" (prev)
+    // 8.1. Nút "‹" (Prev)
     const prevBtn = document.createElement("button");
     prevBtn.innerHTML = "‹";
     prevBtn.classList.add("arrow", "prev-arrow");
@@ -254,32 +281,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     paginationContainer.appendChild(prevBtn);
 
-    // 8.2. Luôn hiển thị nút "1"
+    // 8.2. Luôn hiện nút "1" (trang đầu)
     createPageButton(1);
 
-    // 8.3. Chèn ellipsis nếu cần
+    // 8.3. Nếu khoảng giữa "1" và nhóm xung quanh currentPage rộng -> tạo ellipsis
     if (currentPage - 3 > 1) {
       createEllipsis();
     }
 
-    // 8.4. Hiển thị nhóm pages xung quanh current
+    // 8.4. Hiển thị nhóm pages từ startGroup → endGroup
     const startGroup = Math.max(2, currentPage - 2);
     const endGroup = Math.min(totalPages - 1, currentPage + 2);
     for (let page = startGroup; page <= endGroup; page++) {
       createPageButton(page);
     }
 
-    // 8.5. Chèn ellipsis nếu cần
+    // 8.5. Nếu khoảng giữa endGroup và totalPages rộng -> tạo ellipsis
     if (currentPage + 3 < totalPages) {
       createEllipsis();
     }
 
-    // 8.6. Luôn hiển thị nút trang cuối
+    // 8.6. Luôn hiện nút last page (totalPages)
     if (totalPages > 1) {
       createPageButton(totalPages);
     }
 
-    // 8.7. Nút "›" (next)
+    // 8.7. Nút "›" (Next)
     const nextBtn = document.createElement("button");
     nextBtn.innerHTML = "›";
     nextBtn.classList.add("arrow", "next-arrow");
@@ -292,7 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     paginationContainer.appendChild(nextBtn);
 
-    // --- Hàm phụ trợ ---
+    // ---- Hàm phụ trợ tạo nút số và ellipsis ----
     function createPageButton(page) {
       const btn = document.createElement("button");
       btn.textContent = page;
@@ -319,13 +346,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* -----------------------------------
-     9. Bắt sự kiện filter thay đổi
+     9. Bắt sự kiện khi filter thay đổi
   ----------------------------------- */
   subCatSelect.addEventListener("change", () => {
-    currentPage = 1;
+    currentPage = 1;  // Reset về trang 1 khi filter thay đổi
     renderCards();
   });
   taskTypeSelect.addEventListener("change", () => {
+    currentPage = 1;
+    renderCards();
+  });
+  domainSelect.addEventListener("change", () => {
     currentPage = 1;
     renderCards();
   });
@@ -347,14 +378,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       dataset = records;
 
-      // Thu thập unique sub_category & task_type
+      // 10.1. Thu uniqueSubCats, uniqueTaskTypes, uniqueDomains
       dataset.forEach(rec => {
         if (rec.sub_category) uniqueSubCats.add(rec.sub_category);
         if (rec.task_type) uniqueTaskTypes.add(rec.task_type);
+        if (rec.domain) uniqueDomains.add(rec.domain);
       });
 
-      // Khởi tạo filter và render lần đầu
+      // 10.2. Khởi tạo dropdown
       initFilters();
+
+      // 10.3. Render lần đầu (trang 1)
       currentPage = 1;
       renderCards();
     })

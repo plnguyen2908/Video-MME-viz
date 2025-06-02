@@ -1,7 +1,6 @@
 /* ============================= */
-/* 1. RESET, BASIC STYLES        */
+/* 1. BASIC RESET & STYLES       */
 /* ============================= */
-
 * {
   box-sizing: border-box;
   margin: 0;
@@ -18,7 +17,6 @@ body {
 /* ============================= */
 /* 2. HEADER                     */
 /* ============================= */
-
 header {
   background-color: #222;
   color: #fff;
@@ -34,7 +32,6 @@ header h1 {
 /* ============================= */
 /* 3. FILTERS SECTION            */
 /* ============================= */
-
 #filters {
   background-color: #fff;
   padding: 1rem;
@@ -66,7 +63,6 @@ header h1 {
 /* ============================= */
 /* 4. VIDEO CONTAINER (GRID)     */
 /* ============================= */
-
 #video-container {
   padding: 1.5rem;
   display: grid;
@@ -75,14 +71,13 @@ header h1 {
 }
 
 /* ============================= */
-/* 5. VIDEO CARD STYLES          */
+/* 5. VIDEO CARD & METADATA      */
 /* ============================= */
-
 .video-card {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  overflow: hidden; /* Đảm bảo iframe/video và metadata bo góc */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -93,7 +88,6 @@ header h1 {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* 5.1. Phần media (iframe hoặc video) */
 .video-card iframe,
 .video-card video {
   width: 100%;
@@ -101,7 +95,6 @@ header h1 {
   background-color: #000;
 }
 
-/* 5.2. Phần metadata */
 .video-metadata {
   padding: 0.9rem 1rem;
   display: flex;
@@ -115,24 +108,35 @@ header h1 {
   color: #444;
 }
 
-.video-metadata p .meta-label {
+.video-metadata .meta-label {
   font-weight: 600;
   color: #222;
+}
+
+.video-metadata ul {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  padding-left: 1.2rem;
+}
+
+.video-metadata li {
+  list-style-type: disc;
+  margin-bottom: 0.2rem;
+  font-size: 0.9rem;
 }
 
 /* ============================= */
 /* 6. PAGINATION SECTION         */
 /* ============================= */
-
 #pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 0.4rem;
   padding: 1rem 0;
+  flex-wrap: wrap;
 }
 
-/* 6.1. Nút số trang và mũi tên */
 #pagination button {
   background-color: #fff;
   border: 1px solid #ccc;
@@ -152,22 +156,26 @@ header h1 {
   cursor: not-allowed;
 }
 
-/* 6.2. Nút active (trang hiện tại) */
 #pagination button.active {
   background-color: #222;
   color: #fff;
   border-color: #222;
 }
 
-/* 6.3. Khoảng cách giữa “‹” và nút số */
+#pagination span {
+  font-size: 1.1rem;
+  color: #666;
+  user-select: none;
+}
+
 #pagination .arrow {
   font-weight: bold;
 }
 
-/* Thêm một chút margin cho arrow nếu muốn */
 #pagination .prev-arrow {
   margin-right: 0.2rem;
 }
+
 #pagination .next-arrow {
   margin-left: 0.2rem;
 }
