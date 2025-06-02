@@ -115,6 +115,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const metaDiv = document.createElement("div");
     metaDiv.classList.add("video-metadata");
 
+    // Domain
+    if (record.domain) {
+      const p = document.createElement("p");
+      p.innerHTML = `<span class="meta-label">Domain:</span> ${record.domain}`;
+      metaDiv.appendChild(p);
+    }
+
     // Sub-category
     if (record.sub_category) {
       const p = document.createElement("p");
@@ -126,13 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (record.task_type) {
       const p = document.createElement("p");
       p.innerHTML = `<span class="meta-label">Task Type:</span> ${record.task_type}`;
-      metaDiv.appendChild(p);
-    }
-
-    // Domain
-    if (record.domain) {
-      const p = document.createElement("p");
-      p.innerHTML = `<span class="meta-label">Domain:</span> ${record.domain}`;
       metaDiv.appendChild(p);
     }
 
