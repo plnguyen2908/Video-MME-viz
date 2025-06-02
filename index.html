@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video-MME Dataset Viewer</title>
+  <link rel="stylesheet" href="styles/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Video-MME Dataset Viewer</h1>
+  </header>
+
+  <!-- Bộ lọc -->
+  <section id="filters">
+    <div class="filter-group">
+      <label for="filter-subcategory">Filter by Sub-category:</label>
+      <select id="filter-subcategory">
+        <option value="">-- All --</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-tasktype">Filter by Task Type:</label>
+      <select id="filter-tasktype">
+        <option value="">-- All --</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Nơi hiển thị video/card -->
+  <section id="video-container">
+    <!-- JavaScript sẽ chèn các phần tử .video-card vào đây -->
+  </section>
+
+  <!-- Vùng chứa pagination -->
+  <section id="pagination">
+    <!-- JavaScript sẽ chèn nút mũi tên và số trang tại đây -->
+  </section>
+
+  <script src="scripts/app.js"></script>
+</body>
+</html>
